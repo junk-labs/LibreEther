@@ -31,13 +31,11 @@ jobs:
       - name: Pulling develop
         run: |
           git checkout original/develop
-          git fetch develop
-          git pull develop master:original/develop
+          git pull develop master:original/develop --no-tags
           git push origin original/develop
 
       - name: Pulling stable
         run: |
           git checkout original/stable
-          git fetch stable
-          git pull stable master:original/stable
+          git pull stable master:original/stable --no-tags
           git push origin original/stable
