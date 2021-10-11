@@ -1,0 +1,42 @@
+name: Fetch Upstream
+
+on:
+  schedule:
+    - cron: '30 23 * * *'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.operating-system }}
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: original/develop
+
+      - name: Configure Repository
+        run: |
+          git remote add stable "https://github.com/SoftEtherVPN/SoftEtherVPN_Stable"
+          git remote add develop "https://github.com/SoftEtherVPN/SoftEtherVPN"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Pulling develop
+        run: |
+          git checkout original/develop
+          git fetch develop
+          git pull develop master:original/develop
+          git push origin original/develop
+
+      - name: Pulling stable
+        run: |
+          git checkout original/stable
+          git fetch stable
+          git pull stable master:original/stable
+          git push origin original/stable
