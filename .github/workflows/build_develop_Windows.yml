@@ -25,6 +25,15 @@ jobs:
     env:
       PLATFORM: ${{ matrix.platform }}
     steps:
+
+      - name: Install vcpkg and packages
+        uses: lukka/run-vcpkg@v7
+        id: runvcpkg
+        with:
+          vcpkgGitCommitId: 28af86cc15b53c09de6c0457e0ac737795e497e2
+          vcpkgTriplet: '${{ matrix.arch }}-windows-static-md'
+          vcpkgArguments: 'libsodium openssl zlib'
+
       - name: Checkout
         if: ${{ github.event.inputs.ref != '' }}
         uses: actions/checkout@v2
@@ -40,31 +49,24 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Install vcpkg and packages
-        uses: lukka/run-vcpkg@v7
-        id: runvcpkg
-        with:
-          vcpkgTriplet: '${{ matrix.arch }}-windows-static-md'
-          vcpkgArguments: 'libsodium openssl zlib'
-
       - name: Run vcvars
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
 
       - name: Build
-        uses: lukka/run-cmake@v3
+        uses: lukka/run-cmake@v3.3
         with:
-          cmakeListsOrSettingsJson: CMakeSettingsJson
+          cmakeListsOrSettingsJson: CMakeListsTxtBasic
           cmakeListsTxtPath: '${{github.workspace}}/src/CMakeLists.txt'
           useVcpkgToolchainFile: true
           buildDirectory: '${{runner.workspace}}/build'
+          cmakeGenerator: 'Ninja'
+          cmakeBuildType: 'RelWithDebInfo'
         # enable for a debug build (1/2)
         # buildWithCMakeArgs: --config RelWithDebInfo
           cmakeAppendedArgs: >-
-            -G Ninja
             -DVCPKG_TARGET_TRIPLET=${{ matrix.arch }}-windows-static-md
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo
             -DCMAKE_C_COMPILER=clang-cl
             -DCMAKE_CXX_COMPILER=clang-cl
 
