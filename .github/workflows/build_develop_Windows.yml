@@ -55,24 +55,14 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Build
-        uses: lukka/run-cmake@v3.3
-        with:
-          cmakeListsOrSettingsJson: CMakeListsTxtBasic
-          cmakeListsTxtPath: '${{github.workspace}}/src/CMakeLists.txt'
-          useVcpkgToolchainFile: true
-          buildDirectory: '${{runner.workspace}}/build'
-          cmakeGenerator: 'Ninja'
-          cmakeBuildType: 'RelWithDebInfo'
-        # enable for a debug build (1/2)
-        # buildWithCMakeArgs: --config RelWithDebInfo
-          cmakeAppendedArgs: >-
-            -DVCPKG_TARGET_TRIPLET=${{ matrix.arch }}-windows-static-md
-            -DCMAKE_C_COMPILER=clang-cl
-            -DCMAKE_CXX_COMPILER=clang-cl
+        run: |
+          mkdir ${{runner.workspace}}\build
+          cd /d ${{runner.workspace}}\build
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{runner.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ..\src
+          cmake --build .  --parallel 4
 
       - name: Make Installer Packages
         run: |
-          cd /d ${{runner.workspace}}\build
           mkdir installers
           vpnsetup /SFXMODE:vpnclient /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnclient-${{ github.sha }}-${{ matrix.arch }}.exe"
           vpnsetup /SFXMODE:vpnserver_vpnbridge /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnserver_vpnbridge-${{ github.sha }}-${{ matrix.arch }}.exe"
