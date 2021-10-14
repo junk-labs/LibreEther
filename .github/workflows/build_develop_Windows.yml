@@ -58,14 +58,16 @@ jobs:
         run: |
           mkdir ${{runner.workspace}}\build
           cd /d ${{runner.workspace}}\build
-          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{runner.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ..\src
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ${{github.workspace}}\src
           cmake --build .  --parallel 4
+        shell: cmd
 
       - name: Make Installer Packages
         run: |
           mkdir installers
           vpnsetup /SFXMODE:vpnclient /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnclient-${{ github.sha }}-${{ matrix.arch }}.exe"
           vpnsetup /SFXMODE:vpnserver_vpnbridge /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnserver_vpnbridge-${{ github.sha }}-${{ matrix.arch }}.exe"
+        shell: cmd
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
