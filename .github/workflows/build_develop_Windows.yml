@@ -87,7 +87,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: 'develop-nightly'
-          assets: '*.exe'
+          assets: '*-${{ matrix.arch }}.exe'
 
       - name: Upload Release Asset
         id: upload-release-asset
