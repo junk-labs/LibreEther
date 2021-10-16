@@ -24,15 +24,23 @@ jobs:
             arch: x64
     env:
       PLATFORM: ${{ matrix.platform }}
+      VCPKG_REF: a151bfd9892d096cb7ce54afdb70530c09b12e7b
     steps:
       - name: Install Last CMake
         uses: lukka/get-cmake@latest
+
+      - name: Checkout vcpkg
+        uses: actions/checkout@v2
+        with:
+          repository: microsoft/vcpkg
+          path: ${{ github.workspace }}\vcpkg
+          ref: ${{env.VCPKG_REF}}
 
       - name: Install vcpkg and packages
         uses: lukka/run-vcpkg@v7
         id: runvcpkg
         with:
-          vcpkgGitCommitId: 28af86cc15b53c09de6c0457e0ac737795e497e2
+          vcpkgGitCommitId: ${{env.VCPKG_REF}}
           vcpkgTriplet: '${{ matrix.arch }}-windows-static-md'
           vcpkgArguments: 'libsodium openssl zlib'
 
