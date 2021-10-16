@@ -26,21 +26,6 @@ jobs:
       PLATFORM: ${{ matrix.platform }}
       VCPKG_REF: a151bfd9892d096cb7ce54afdb70530c09b12e7b
     steps:
-      - name: Checkout vcpkg
-        uses: actions/checkout@v2
-        with:
-          repository: microsoft/vcpkg
-          path: ${{ github.workspace }}\vcpkg
-          ref: ${{env.VCPKG_REF}}
-
-      - name: Install vcpkg and packages
-        uses: lukka/run-vcpkg@v7
-        id: runvcpkg
-        with:
-          vcpkgGitCommitId: ${{env.VCPKG_REF}}
-          vcpkgTriplet: '${{ matrix.arch }}-windows-static-md'
-          vcpkgArguments: 'libsodium openssl zlib'
-
       - name: Checkout
         if: ${{ github.event.inputs.ref != '' }}
         uses: actions/checkout@v2
@@ -56,13 +41,22 @@ jobs:
           submodules: true
           fetch-depth: 0
 
- #     - name: Run vcvars
- #       uses: ilammy/msvc-dev-cmd@v1
- #       with:
- #         arch: ${{ matrix.arch }}
+      - name: Checkout vcpkg
+        uses: actions/checkout@v2
+        with:
+          repository: microsoft/vcpkg
+          path: ${{ github.workspace }}\vcpkg
+          ref: ${{env.VCPKG_REF}}
 
+      - name: Install vcpkg and packages
+        uses: lukka/run-vcpkg@v7
+        id: runvcpkg
+        with:
+          vcpkgGitCommitId: ${{env.VCPKG_REF}}
+          vcpkgTriplet: '${{ matrix.arch }}-windows-static-md'
+          vcpkgArguments: 'libsodium openssl zlib'
 
-      - name: Install Last CMake
+      - name: Install CMake 3.21.2
         uses: lukka/get-cmake@v3.21.2
 
 #      - name: Build
@@ -78,18 +72,20 @@ jobs:
 #          buildWithCMake: true
 
       - name: Build
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
         run: |
-          dir ${{github.workspace}}
-          dir ${{runner.workspace}}
+          path
           mkdir ${{runner.workspace}}\build
           cd /d ${{runner.workspace}}\build
-          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ${{github.workspace}}\src
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ${{github.workspace}}
           cmake --build .  --parallel 4
         shell: cmd
 
       - name: Make Installer Packages
         run: |
-          cd /d ${{ runner.workspace }}/build/
+          cd /d ${{ runner.workspace }}\build\
           mkdir installers
           vpnsetup /SFXMODE:vpnclient /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnclient-${{ github.sha }}-${{ matrix.arch }}.exe"
           vpnsetup /SFXMODE:vpnserver_vpnbridge /SFXOUT:"${{runner.workspace}}\build\installers\softether-vpnserver_vpnbridge-${{ github.sha }}-${{ matrix.arch }}.exe"
