@@ -26,9 +26,6 @@ jobs:
       PLATFORM: ${{ matrix.platform }}
       VCPKG_REF: a151bfd9892d096cb7ce54afdb70530c09b12e7b
     steps:
-      - name: Install Last CMake
-        uses: lukka/get-cmake@latest
-
       - name: Checkout vcpkg
         uses: actions/checkout@v2
         with:
@@ -64,6 +61,10 @@ jobs:
  #       with:
  #         arch: ${{ matrix.arch }}
 
+
+      - name: Install Last CMake
+        uses: lukka/get-cmake@v3.21.2
+
 #      - name: Build
 #        uses: lukka/run-cmake@v3
 #        with:
@@ -78,6 +79,8 @@ jobs:
 
       - name: Build
         run: |
+          dir ${{github.workspace}}
+          dir ${{runner.workspace}}
           mkdir ${{runner.workspace}}\build
           cd /d ${{runner.workspace}}\build
           cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows-static-md -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl ${{github.workspace}}\src
